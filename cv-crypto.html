@@ -773,9 +773,11 @@
 </div>
 
   <!-- Ethers v6 + WalletConnect v2 (UMD bundles) -->
-  <script src="https://cdn.jsdelivr.net/npm/ethers@6.13.4/dist/ethers.umd.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/@walletconnect/ethereum-provider@2.15.2/dist/index.umd.min.js"></script>
+  <!--script src="https://cdn.jsdelivr.net/npm/ethers@6.13.4/dist/ethers.umd.min.js"></script-->
+  <!-- script src="https://cdn.jsdelivr.net/npm/@walletconnect/ethereum-provider@2.15.2/dist/index.umd.min.js"></script> -->
   <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
+<script src="https://unpkg.com/ethers@6.13.4/dist/ethers.umd.min.js"></script>
+<script src="https://unpkg.com/@walletconnect/ethereum-provider@2.15.2/dist/index.umd.min.js"></script>
 
  <script>
   // =========================
@@ -855,10 +857,21 @@
   try{
     // Grab the provider even if the UMD bundle exposes it differently
     const WC =
-      globalThis.EthereumProvider ||
-      globalThis?.["@walletconnect/ethereum-provider"]?.EthereumProvider ||
-      globalThis?.WalletConnectEthereumProvider ||
-      null;
+  window.EthereumProvider ||
+  window.WalletConnectEthereumProvider ||
+  window?.["@walletconnect/ethereum-provider"]?.EthereumProvider;
+
+if (!WC || !WC.init) {
+  alert("WalletConnect provider not loaded. CDN blocked or script failed to load.");
+  return;
+}
+
+eip1193Provider = await WC.init({
+  projectId: WALLETCONNECT_PROJECT_ID,
+  chains: [1],
+  showQrModal: true
+});
+await eip1193Provider.connect();
 
     if(!WC?.init){
       alert("WalletConnect provider not loaded. Check if the CDN scripts are blocked.");
@@ -991,6 +1004,13 @@
       setStatus("DISCONNECTED");
     }
   })();
+</script>
+<script>
+  console.log("WC globals:", {
+    EthereumProvider: !!window.EthereumProvider,
+    WalletConnectEthereumProvider: !!window.WalletConnectEthereumProvider,
+    wcNamespace: window["@walletconnect/ethereum-provider"]
+  });
 </script>
 </body>
 </html>
